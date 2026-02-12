@@ -789,11 +789,19 @@ def adverse_weather_rating(hxd, progress):
     )
 
     # Build daily event payload with lat/lon; location field is empty string for prod API
-    daily_event_set = (
-        df_event_set[["index", "start_date", "end_date", "latitude", "longitude"]]
-        .assign(location="")
-        .to_dict(orient="records")
-    )
+    # Cast to native Python types to match build_events_daily() output and
+    # avoid numpy-type serialisation failures in _json_converter.
+    daily_event_set = [
+        {
+            "index": int(row["index"]),
+            "location": "",
+            "start_date": row["start_date"],
+            "end_date": row["end_date"],
+            "latitude": float(row["latitude"]),
+            "longitude": float(row["longitude"]),
+        }
+        for row in df_event_set.to_dict(orient="records")
+    ]
 
     # Labels for warning messages
     daily_labels = [
@@ -824,19 +832,23 @@ def adverse_weather_rating(hxd, progress):
     hxd.calculations.adverse_weather.adverse_weather_daily = df_daily.to_dict(orient="records")
 
     # Build expanding event payload with lat/lon
-    expanding_event_set = (
-        df_event_set.loc[
-            df_event_set["requires_cumulative"] == 1,
-            ["index", "start_date", "end_date", "latitude", "longitude"]
-        ]
-        .assign(
-            location="",
-            start_hour=0,
-            end_hour=23,
-            tag=lambda df: "tag-" + df["index"].astype(str),
-        )
-        .to_dict(orient="records")
-    )
+    # Cast to native Python types to match build_events_expanding() output.
+    expanding_event_set = [
+        {
+            "index": int(row["index"]),
+            "tag": f"tag-{int(row['index'])}",
+            "location": "",
+            "start_date": row["start_date"],
+            "end_date": row["end_date"],
+            "start_hour": 0,
+            "end_hour": 23,
+            "latitude": float(row["latitude"]),
+            "longitude": float(row["longitude"]),
+        }
+        for row in df_event_set.loc[
+            df_event_set["requires_cumulative"] == 1
+        ].to_dict(orient="records")
+    ]
 
     if len(expanding_event_set) > 0:
 
