@@ -827,6 +827,8 @@ def adverse_weather_rating(hxd, progress):
 
     # Normalise daily results (probability / 100) into schema shape
     df_daily = pd.DataFrame(normalise_daily_results(daily_api_json)).sort_values('index')
+    # API returns PascalCase perils; downstream rating expects snake_case
+    df_daily['peril'] = df_daily['peril'].map(camel_to_snake)
 
     # write df_daily to hxd
     hxd.calculations.adverse_weather.adverse_weather_daily = df_daily.to_dict(orient="records")
@@ -875,6 +877,8 @@ def adverse_weather_rating(hxd, progress):
 
         # Normalise expanding results (probability / 100) into schema shape
         df_expanding = pd.DataFrame(normalise_expanding_results(expanding_api_json))
+        # API returns PascalCase perils; downstream rating expects snake_case
+        df_expanding['peril'] = df_expanding['peril'].map(camel_to_snake)
 
         # write df_expanding to hxd
         hxd.calculations.adverse_weather.adverse_weather_expanding = df_expanding.to_dict(orient="records")
