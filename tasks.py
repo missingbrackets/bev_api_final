@@ -829,7 +829,12 @@ def adverse_weather_rating(hxd, progress):
             df_event_set["requires_cumulative"] == 1,
             ["index", "start_date", "end_date", "latitude", "longitude"]
         ]
-        .assign(location="")
+        .assign(
+            location="",
+            start_hour=0,
+            end_hour=23,
+            tag=lambda df: "tag-" + df["index"].astype(str),
+        )
         .to_dict(orient="records")
     )
 
