@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import time
 import json
+import datetime
 from datetime import date
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional, Tuple
@@ -24,6 +25,7 @@ from urllib3.util.retry import Retry
 import requests
 from requests.adapters import HTTPAdapter
 
+import numpy as np
 import pandas as pd
 
 # ---------------------------------------------------------------------------
@@ -278,6 +280,10 @@ def build_failed_warnings(
 def _json_converter(obj):
     if isinstance(obj, (datetime.datetime, datetime.date)):
         return obj.isoformat()
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
